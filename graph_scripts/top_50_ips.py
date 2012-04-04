@@ -38,12 +38,17 @@ def main(argv=None):
         requests.append(int(row['Requests']))
         num_bytes.append(int(row['Bytes']))
 
+    if len(ips) > 25:
+        length = 25
+    else:
+        length = len(ips)
+
     fig = pylab.figure(1)
-    pos = pylab.arange(25) + .5
-    pylab.barh(pos, requests[:25], align='center', aa=True, ecolor='r')
-    pylab.yticks(pos, ips[:25])
+    pos = pylab.arange(length) + .5
+    pylab.barh(pos, requests[:length], align='center', aa=True, ecolor='r')
+    pylab.yticks(pos, ips[:length])
     pylab.xlabel('Requests')
-    pylab.title('Top 25 ips ordered by # of requests')
+    pylab.title('Top %d ips ordered by # of requests' % length)
     pylab.grid(True)
 
     #Save the figure
@@ -51,11 +56,11 @@ def main(argv=None):
 
     #bytes listed 
     fig = pylab.figure(2)
-    pos = pylab.arange(25) + .5
-    pylab.barh(pos, num_bytes[:25], align='center', aa=True, ecolor='r')
-    pylab.yticks(pos, ips[:25])
+    pos = pylab.arange(length) + .5
+    pylab.barh(pos, num_bytes[:length], align='center', aa=True, ecolor='r')
+    pylab.yticks(pos, ips[:length])
     pylab.xlabel('Bytes')
-    pylab.title('Bytes of the top 25 ips ordered by # of requests')
+    pylab.title('Bytes of the top %d ips ordered by # of requests' % length)
     pylab.grid(True)
 
     #Save the figure

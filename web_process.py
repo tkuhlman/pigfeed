@@ -1,19 +1,13 @@
 #!/usr/bin/env python
 """ Web process
     Using pig to process a set of web logs for the given profile in either a daily, weekly or monthly fashion.
-    Next it takes the reports and runs them through matplotlib to create graphs. Each report has a template
-    in graph_scripts that defines the graph to be run. These templates take as input the report name,
-    report dir and graph dir.
     The profile file is a python config file, see profile-example.py
     I assume all the pig files are in the same dir as this script.
     See http://ofps.oreilly.com/titles/9781449302641/embedding.html
-    Depending on your setup you may need to specify the environment variable JYTHON_HOME
 """
 
-from glob import glob
 import os
 import sys
-import tempfile
 
 from org.apache.pig.scripting import Pig
 import org.apache.pig.tools.pigstats.SimplePigStats #For type comparison
@@ -67,35 +61,6 @@ def main(argv=None):
             if not run.isSuccessful():
                 print 'Error in web log stats, %s' % run.getErrorMessage()
                 sys.exit(1)
-
-    #Generate graphs
-    generate_graphs(profile['graph_dir'], profile['REPORTDIR'])
-
-def generate_graphs(graph_dir, report_dir):
-    """Generate graphs for for all report types found both in the report_dir and the report scripts dir.
-        Store the graphs in the graph_dir
-        report_dir is in hdfs, graph_dir isn't
-    """
-    if not os.path.exists(graph_dir):
-        os.makedirs(graph_dir)
-
-    temp_dir = tempfile.mkdtemp()
-    #I copy all reports locally to make them easier to work with
-    Pig.fs('get %s %s' % (report_dir, temp_dir))
-    local_report_dir = glob(temp_dir + '/*')[0]
-    reports = os.listdir(local_report_dir)
-    template_list = os.listdir('graph_scripts')
-    for report in reports:
-        #Run it through the graph generation if a script exists
-        if (report + '.py') in template_list:
-            #jython is too limited so I just call python
-#!! os.popen won't even work
-#            os.popen('python ' + os.path.join('graph_scripts', report + '.py') + report + \
-#                os.path.join(local_report_dir, report) + graph_dir)
-            pass
-
-    #cleanup my dir
-    os.remove(temp_dir)
 
 def import_logs(profile):
     """ Import all the log files for a given day and processed them putting each in a log dir.
