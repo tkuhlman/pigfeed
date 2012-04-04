@@ -45,26 +45,14 @@ def main(argv=None):
 
     fig = pylab.figure(1)
     pos = pylab.arange(length) + .5
-    pylab.barh(pos, requests[:length], align='center', aa=True, ecolor='r')
+    pylab.barh(pos, num_bytes[:length], align='center', aa=True, ecolor='r')
     pylab.yticks(pos, ips[:length])
-    pylab.xlabel('Requests')
-    pylab.title('Top %d ips ordered by # of requests' % length)
+    pylab.xlabel('Bytes')
+    pylab.title('Top %d ips ordered by bytes' % length)
     pylab.grid(True)
 
     #Save the figure
     pylab.savefig(os.path.join(graph_dir, report + '.png'), bbox_inches='tight', pad_inches=1)
-
-    #bytes listed 
-    fig = pylab.figure(2)
-    pos = pylab.arange(length) + .5
-    pylab.barh(pos, num_bytes[:length], align='center', aa=True, ecolor='r')
-    pylab.yticks(pos, ips[:length])
-    pylab.xlabel('Bytes')
-    pylab.title('Bytes of the top %d ips ordered by # of requests' % length)
-    pylab.grid(True)
-
-    #Save the figure
-    pylab.savefig(os.path.join(graph_dir, report + '_bytes.png'), bbox_inches='tight', pad_inches=1)
 
 if __name__ == "__main__":
     sys.exit(main())

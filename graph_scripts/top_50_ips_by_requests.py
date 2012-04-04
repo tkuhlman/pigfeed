@@ -1,4 +1,4 @@
-""" Graph the requests/bytes per hour
+""" Graph the top 50 ips.
     I assume only one part* file in the report_dir
 """
 
@@ -29,39 +29,30 @@ def main(argv=None):
     shutil.copyfile(file_list[0], raw_file)
 
     #Process the file into a graph, ideally I would combine the two into one but for now I'll stick with two
-    data_file = csv.DictReader(open(raw_file, 'rb'), fieldnames = ['hour', 'Requests', 'Bytes'], delimiter="\t")
-    hours = []
+    data_file = csv.DictReader(open(raw_file, 'rb'), fieldnames = ['IP', 'Requests', 'Bytes'], delimiter="\t")
+    ips = []
     requests = []
     num_bytes = []
     for row in data_file:
-        hours.append(row['hour'])
+        ips.append(row['IP'])
         requests.append(int(row['Requests']))
         num_bytes.append(int(row['Bytes']))
 
-    length = 24
+    if len(ips) > 25:
+        length = 25
+    else:
+        length = len(ips)
 
     fig = pylab.figure(1)
     pos = pylab.arange(length) + .5
-    pylab.bar(pos, requests[:length], aa=True, ecolor='r')
-    pylab.ylabel('Requests')
-    pylab.xlabel('Hour')
-    pylab.title('Request per hour')
+    pylab.barh(pos, requests[:length], align='center', aa=True, ecolor='r')
+    pylab.yticks(pos, ips[:length])
+    pylab.xlabel('Requests')
+    pylab.title('Top %d ips ordered by # of requests' % length)
     pylab.grid(True)
 
     #Save the figure
-    pylab.savefig(os.path.join(graph_dir, report + '_requests.png'), bbox_inches='tight', pad_inches=1)
-
-    #bytes listed 
-    fig = pylab.figure(2)
-    pos = pylab.arange(length) + .5
-    pylab.bar(pos, num_bytes[:length], aa=True, ecolor='r')
-    pylab.ylabel('Bytes')
-    pylab.xlabel('Hour')
-    pylab.title('Bytes per hour')
-    pylab.grid(True)
-
-    #Save the figure
-    pylab.savefig(os.path.join(graph_dir, report + '_bytes.png'), bbox_inches='tight', pad_inches=1)
+    pylab.savefig(os.path.join(graph_dir, report + '.png'), bbox_inches='tight', pad_inches=1)
 
 if __name__ == "__main__":
     sys.exit(main())

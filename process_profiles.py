@@ -45,11 +45,11 @@ def main(argv=None):
         #!!I plan to support different types of profiles but for now it is just web_process.py
         profile_processor = 'web_process.py'
         try:
-            output = subprocess.check_output(['pig', '-l', '/var/log/pig', '-f', \
+            subprocess.check_output(['pig', '-l', '/var/log/pig', '-f', \
                 profile_processor], cwd=code_dir)
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError, err:
             print 'Error running profile %s for the timeframe %s, skipping stats generation.' % (profile, timeframe)
-            print 'Error output: %s' % output
+            print 'Error output: %s' % err.output
             continue
         else:
             generate_graphs(profile, timeframe)
@@ -72,10 +72,10 @@ def generate_graphs(profile_file, timeframe):
     temp_dir = tempfile.mkdtemp()
     #I copy all reports locally to make them easier to work with
     try:
-        output = subprocess.check_output(['hadoop', 'fs', '-get', report_dir, temp_dir])
-    except subprocess.CalledProcessError:
+        subprocess.check_output(['hadoop', 'fs', '-get', report_dir, temp_dir])
+    except subprocess.CalledProcessError, err:
         print 'Error retrieving reports from hdfs for profile %s' % profile_file
-        print 'Error output: %s' % output
+        print 'Error output: %s' % err.output
         return
 
     local_report_dir = glob(temp_dir + '/*')[0]
