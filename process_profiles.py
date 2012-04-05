@@ -52,9 +52,9 @@ def main(argv=None):
             print 'Error output: %s' % err.output
             continue
         else:
-            generate_graphs(profile, timeframe)
+            generate_graphs(profile, timeframe, os.path.join(code_dir, 'graph_scripts'))
 
-def generate_graphs(profile_file, timeframe):
+def generate_graphs(profile_file, timeframe, graph_scripts):
     """Generate graphs for for all report types found both in the report_dir and the report scripts dir.
         Store the graphs in the graph_dir
         report_dir is in hdfs, graph_dir isn't
@@ -80,11 +80,11 @@ def generate_graphs(profile_file, timeframe):
 
     local_report_dir = glob(temp_dir + '/*')[0]
     reports = os.listdir(local_report_dir)
-    template_list = os.listdir('graph_scripts')
+    template_list = os.listdir(graph_scripts)
     started = []
     for report in reports:
         if (report + '.py') in template_list:
-            report_mod = imp.load_source(report, os.path.join('graph_scripts', report + '.py'))
+            report_mod = imp.load_source(report, os.path.join(graph_scripts, report + '.py'))
             #templates take the name, report_dir, and graph dir as args
             #since the command line always supplies the command as argv[0] I do also.
             argv = (report + '.py', report, os.path.join(local_report_dir, report), graph_dir)
