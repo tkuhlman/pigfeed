@@ -24,6 +24,7 @@ if timeframe == 'daily':
     logs = []
     LOGDIR = '%s/logs/%s' % (profile_dir, date)
     REPORTDIR = '%s/reports/daily/%s' % (profile_dir, date)
+    oldest_log = datetime.today() + timedelta(35) #Delete logs older than this
     # For each log directory find the log and add it to the logs params
     for raw_dir in glob('/home/stats/web?.viawest.iresis.com'):
         log_dict = {'LOGDIR': LOGDIR, 'TMPDIR': TMPDIR, 'SITE': SITE}

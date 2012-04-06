@@ -11,6 +11,7 @@
     must be run in actual python, rather than pigs embeded python.
 """
 
+from datetime import datetime
 from glob import glob
 import imp
 from multiprocessing import Process
@@ -40,32 +41,33 @@ def main(argv=None):
     os.environ['JYTHON_HOME'] = JYTHON_HOME
 
     profiles = glob(os.path.join(profile_dir, '*.py'))
-    for profile in profiles:
-        os.environ['config_file'] = profile
+    for profile_file in profiles:
+        os.environ['config_file'] = profile_file
         #!!I plan to support different types of profiles but for now it is just web_process.py
         profile_processor = 'web_process.py'
         try:
             subprocess.check_output(['pig', '-l', '/var/log/pig', '-f', \
                 profile_processor], cwd=code_dir)
         except subprocess.CalledProcessError, err:
-            print 'Error running profile %s for the timeframe %s, skipping stats generation.' % (profile, timeframe)
+            print 'Error running profile %s for the timeframe %s, skipping stats generation.' \
+                % (profile_file, timeframe)
             print 'Error output: %s' % err.output
             continue
         else:
-            generate_graphs(profile, timeframe, os.path.join(code_dir, 'graph_scripts'))
+            #Load the config
+            profile = {}
+            execfile(profile_file, {'timeframe':timeframe}, profile)
 
-def generate_graphs(profile_file, timeframe, graph_scripts):
+            purge_old_logs(profile['oldest_log'], os.path.dirname(profile['LOGDIR']))
+            generate_graphs(profile['graph_dir'], profile['REPORTDIR'], \
+                os.path.join(code_dir, 'graph_scripts'))
+
+def generate_graphs(graph_dir, report_dir, graph_scripts):
     """Generate graphs for for all report types found both in the report_dir and the report scripts dir.
         Store the graphs in the graph_dir
         report_dir is in hdfs, graph_dir isn't
         I use multiprocessing to get many reports running at once.
     """
-    #Load the config
-    profile = {}
-    execfile(profile_file, {'timeframe':timeframe}, profile)
-    graph_dir = profile['graph_dir']
-    report_dir = profile['REPORTDIR']
-
     if not os.path.exists(graph_dir):
         os.makedirs(graph_dir)
 
@@ -74,7 +76,7 @@ def generate_graphs(profile_file, timeframe, graph_scripts):
     try:
         subprocess.check_output(['hadoop', 'fs', '-get', report_dir, temp_dir])
     except subprocess.CalledProcessError, err:
-        print 'Error retrieving reports from hdfs for profile %s' % profile_file
+        print 'Error retrieving reports from hdfs for %s' % report_dir
         print 'Error output: %s' % err.output
         return
 
@@ -97,6 +99,33 @@ def generate_graphs(profile_file, timeframe, graph_scripts):
 
     #cleanup my dir
     shutil.rmtree(temp_dir)
+
+def purge_old_logs(oldest_log, log_base_dir):
+    """ Clean out any subdirs in hdfs log_base_dir that are older than oldest_log.
+        The subdir names are assumed to follow the pattern %Y_%m_%d
+    """
+    try:
+        output = subprocess.check_output(['hadoop', 'fs', '-ls', log_base_dir])
+    except subprocess.CalledProcessError, err:
+        print 'Error with ls in hdfs for %s' % log_base_dir
+        print 'Error output: %s' % err.output
+        return
+
+    #Parse the hadoop ls output to get the current log dirs
+    dirs = []
+    for line in output.splitlines():
+        split = line.split('/', 1)
+        if len(split) == 2:
+            dirs.append(os.path.basename(split[1]))
+
+    for log_dir in dirs:
+        log_date = datetime.strptime(log_dir, '%Y_%m_%d')
+        if log_date > oldest_log: 
+            try:
+                output = subprocess.check_output(['hadoop', 'fs', '-rmr', log_dir])
+            except subprocess.CalledProcessError, err:
+                print 'Error with rmr in hdfs for %s' % log_dir
+                print 'Error output: %s' % err.output
 
 
 if __name__ == "__main__":
