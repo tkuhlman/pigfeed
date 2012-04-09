@@ -58,7 +58,9 @@ def main(argv=None):
             profile = {}
             execfile(profile_file, {'timeframe':timeframe}, profile)
 
-            purge_old_logs(profile['oldest_log'], os.path.dirname(profile['LOGDIR']))
+            if timeframe == 'daily':
+                purge_old_logs(profile['oldest_log'], os.path.dirname(profile['LOGDIR']))
+
             generate_graphs(profile['graph_dir'], profile['REPORTDIR'], \
                 os.path.join(code_dir, 'graph_scripts'))
 
