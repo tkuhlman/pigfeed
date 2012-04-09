@@ -30,15 +30,25 @@ def main(argv=None):
 
     #Process the file into a graph, ideally I would combine the two into one but for now I'll stick with two
     data_file = csv.DictReader(open(raw_file, 'rb'), fieldnames = ['hour', 'Requests', 'Bytes'], delimiter="\t")
-    hours = []
+    
+    #Make an empty set will all the hours in it os if an hour is not in the data it will be 0
+    length = 24
+    requests_dict = {}
+    for num in range(length):
+        requests_dict['%0*d' % (2, num)] = (0, 0)
+
+    #add the values we have to the dictionaries
+    for row in data_file:
+        requests_dict[row['hour']] = (int(row['Requests']), int(row['Bytes']))
+
+    #Now get the lists for graphing in the right order
     requests = []
     num_bytes = []
-    for row in data_file:
-        hours.append(row['hour'])
-        requests.append(int(row['Requests']))
-        num_bytes.append(int(row['Bytes']))
-
-    length = 24
+    requests_lists = requests_dict.items()
+    requests_lists.sort(key=lambda req: req[0])
+    for req in requests_lists:
+        requests.append(req[1][0])
+        num_bytes.append(req[1][1])
 
     fig = pylab.figure(1)
     pos = pylab.arange(length) + .5
