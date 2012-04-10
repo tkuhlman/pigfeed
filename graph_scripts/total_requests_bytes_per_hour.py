@@ -59,7 +59,7 @@ def main(argv=None):
     pylab.grid(True)
 
     #Save the figure
-    pylab.savefig(os.path.join(graph_dir, report + '_requests.png'), bbox_inches='tight', pad_inches=1)
+    pylab.savefig(os.path.join(graph_dir, report + '_requests.pdf'), bbox_inches='tight', pad_inches=1)
 
     #bytes listed 
     fig = pylab.figure(2)
@@ -71,7 +71,7 @@ def main(argv=None):
     pylab.grid(True)
 
     #Save the figure
-    pylab.savefig(os.path.join(graph_dir, report + '_bytes.png'), bbox_inches='tight', pad_inches=1)
+    pylab.savefig(os.path.join(graph_dir, report + '_bytes.pdf'), bbox_inches='tight', pad_inches=1)
 
 if __name__ == "__main__":
     sys.exit(main())
